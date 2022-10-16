@@ -1,24 +1,33 @@
 name: Pylint
 
-on: 
-    schedule:
-    - cron:  "0 0 * * *"
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [ main ]
+  
+  schedule:
+  # Github Action 使用世界标准时间（UTC），北京时间（UTC+8）转换为世界标准时需要减去8小时
+    - cron:  '30 23 * * *' # 默认在每天 UTC 7:30 （北京时间 0:30）执行
 
 jobs:
-  build:
+  USER_01:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.8", "3.9", "3.10"]
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.9
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint
-    - name: Analysing the code with pylint
-      run: main.py
+        pip install -r requirements.txt
+    - name: Import cache
+      uses: actions/cache@v2
+      with:
+        path: .cache
+        key: ${{ secrets.CACHE_NAME }}-${{ github.run_id }}
+        restore-keys: ${{ secrets.CACHE_NAME }}-
+    - name: Run script
+
+      run: python main.py
